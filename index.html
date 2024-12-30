@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+    </head>
+    <body>
+        <canvas id="canvas" width="600" height="400" style="border:1px solid black;">display</canvas>
+        <p id="text">test</p>
+    </body>
+    <script>
+
+        class Cell {
+            constructor(i, j, alive, ctx) {
+                this.i = i;
+                this.j = j; 
+                this.alive = alive;
+                this.ctx = ctx;
+            }
+        }
+    
+        class Board {
+            constructor(id) {
+
+                this.canvas = document.getElementById(id);
+
+                this.width = this.canvas.width;
+                this.height = this.canvas.height; 
+
+                this.ctx = canvas.getContext('2d');
+                this.ctx.fillStyle = 'black';
+
+                this.cells = [];
+
+                this.init_board()
+                window.requestAnimationFrame(() => this.init_board());
+            }
+
+            init_board() {
+
+                for(let i = 0; i < this.width; i+=10) {
+                    for(let j = 0; j < this.height; j+=10) {
+                        document.getElementById("text").innerHTML = j;
+                        let alive = Math.random();
+                        let cell = new Cell(i, j, alive, this.ctx);
+                        this.cells.push(cell);
+
+                        if (alive < 0.01) {
+                            this.ctx.fillRect(i, j, 10, 10); 
+                        }
+                    }
+                }
+                setTimeout( () => {
+                  window.requestAnimationFrame(() => this.init_board());
+              }, 100)
+            }
+
+        }
+
+        let game = new Board('canvas');
+    </script>
+</html>

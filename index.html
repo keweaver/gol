@@ -8,6 +8,7 @@
         <p id="text">test</p>
     </body>
     <script>
+        
 
         class Cell {
             constructor(i, j, alive, ctx) {
@@ -16,22 +17,27 @@
                 this.alive = alive;
                 this.ctx = ctx;
             }
+
+            draw() {
+                if (this.alive) {
+                    this.ctx.fillRect(this.i, this.j, 10, 10);
+                }
+
+            }
         }
     
         class Board {
             constructor(id) {
 
                 this.canvas = document.getElementById(id);
-
                 this.width = this.canvas.width;
                 this.height = this.canvas.height; 
 
                 this.ctx = canvas.getContext('2d');
-                this.ctx.fillStyle = 'black';
 
                 this.cells = [];
 
-                this.init_board()
+                this.init_board();
                 window.requestAnimationFrame(() => this.init_board());
             }
 
@@ -39,14 +45,11 @@
 
                 for(let i = 0; i < this.width; i+=10) {
                     for(let j = 0; j < this.height; j+=10) {
-                        document.getElementById("text").innerHTML = j;
-                        let alive = Math.random();
-                        let cell = new Cell(i, j, alive, this.ctx);
-                        this.cells.push(cell);
 
-                        if (alive < 0.01) {
-                            this.ctx.fillRect(i, j, 10, 10); 
-                        }
+                        let alive = Math.random();
+                        let cell = new Cell(i, j, alive < 0.5, this.ctx);
+                        this.cells.push(cell);
+                        cell.draw(); 
                     }
                 }
                 setTimeout( () => {

@@ -8,53 +8,75 @@
         <p id="text">test</p>
     </body>
     <script>
-        
-
+    
         class Cell {
             constructor(i, j, alive, ctx) {
                 this.i = i;
                 this.j = j; 
                 this.alive = alive;
                 this.ctx = ctx;
+                this.cell_width = 10;
             }
 
             draw() {
                 if (this.alive) {
-                    this.ctx.fillRect(this.i, this.j, 10, 10);
+                    this.ctx.fillRect(this.i * 10, this.j  * 10, this.cell_width, this.cell_width);
                 }
-
             }
+
+            
         }
     
         class Board {
             constructor(id) {
-
                 this.canvas = document.getElementById(id);
-                this.width = this.canvas.width;
-                this.height = this.canvas.height; 
+                this.cell_width = 10;
+                this.width = this.canvas.width / this.cell_width;
+                this.height = this.canvas.height / this.cell_width; 
 
                 this.ctx = canvas.getContext('2d');
-
                 this.cells = [];
 
                 this.init_board();
-                window.requestAnimationFrame(() => this.init_board());
+                window.requestAnimationFrame(() => this.play_game());
             }
 
             init_board() {
-
-                for(let i = 0; i < this.width; i+=10) {
-                    for(let j = 0; j < this.height; j+=10) {
-
+                for(let i = 0; i < this.width; i++) {
+                    let cur_row = [];
+                    for(let j = 0; j < this.height; j++) {
                         let alive = Math.random();
                         let cell = new Cell(i, j, alive < 0.5, this.ctx);
-                        this.cells.push(cell);
+                        cur_row.push(cell);
                         cell.draw(); 
                     }
+                    this.cells.push(cur_row);
                 }
-                setTimeout( () => {
-                  window.requestAnimationFrame(() => this.init_board());
-              }, 100)
+                //2D ARRAY IS WORKING :) 
+                document.getElementById("text").innerHTML =  this.cells[0][0];
+            }
+
+            update(cell) {
+                //given a cell, use GOL rules to update status
+
+                //fewer than two live neighbours dies: 
+
+                //two or three live neighbors lives: 
+
+                //more than three live neighbors dies:
+
+                //if cell is dead and has 3 live neighborsmlives 
+
+            }
+
+            play_game() {
+                //update each cell's status 
+                this.cells.forEach((cell) => this.update(cell));
+
+                //render board again
+                this.cells.forEach((cell) => cell.draw());
+
+                //repeat 
             }
 
         }

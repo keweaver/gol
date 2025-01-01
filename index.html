@@ -20,7 +20,14 @@
 
             draw() {
                 if (this.alive) {
+                    this.ctx.fillStyle = 'black';
+
                     this.ctx.fillRect(this.i * 10, this.j  * 10, this.cell_width, this.cell_width);
+                }
+                else {
+                    this.ctx.fillStyle = 'white';
+                    this.ctx.fillRect(this.i * 10, this.j  * 10, this.cell_width, this.cell_width);
+
                 }
             }
 
@@ -53,30 +60,98 @@
                     this.cells.push(cur_row);
                 }
                 //2D ARRAY IS WORKING :) 
-                document.getElementById("text").innerHTML =  this.cells[0][0];
+                //document.getElementById("text").innerHTML =  this.cells[0][0];
             }
 
             update(cell) {
                 //given a cell, use GOL rules to update status
 
-                //fewer than two live neighbours dies: 
+                let neighbors = this.retrieve_neighbors(cell.i, cell.j);
 
-                //two or three live neighbors lives: 
+                let live = neighbors.filter(Boolean).length;
+                
+                if (cell.alive) {
+                    //fewer than two live neighbours dies: 
+                    if (live < 2) {
+                        cell.alive = false; 
+                    }
+                    //two or three live neighbors lives: 
+                    else if ((live == 2) || (live == 3)) {
+                        cell.alive = true; 
+                    }
+                    //more than three live neighbors dies:
+                    else {
+                        cell.alive = false; 
+                    }
+                }
+                else {
+                    //cell is currentl dead
+                    if (live == 3) {
+                        cell.alive = true; 
+                    }
+                }
+            }
 
-                //more than three live neighbors dies:
+            retrieve_neighbors(i, j) {
+                document.getElementById("text").innerHTML =  i + " " + j + " " + this.height;
 
-                //if cell is dead and has 3 live neighborsmlives 
 
+                let neighbors = [];
+
+                //if there are cells to the left..
+                if (i > 0) {
+                    //get the cell to the left
+                    neighbors.push(this.cells[i - 1][j]);
+                    if (j > 0) {
+                        //get the cell to the upper left 
+                        neighbors.push(this.cells[i-1][j-1].alive);
+                    }
+                    if (j < this.height - 1) {
+                        //get the cell to the lower left 
+                        neighbors.push(this.cells[i-1][j+1].alive)
+                    }
+                }
+                if (i < this.width - 1) {
+                    //get the cell to the right...
+                    neighbors.push(this.cells[i + 1][j].alive);
+                    if (j > 0) {
+                        //get cell to upper right...
+                        neighbors.push(this.cells[i + 1][j - 1].alive);
+                    }
+                    if (j < this.height - 1) {
+                        neighbors.push(this.cells[i + 1][j + 1].alive);
+                    }
+                }
+                if (j > 0) {
+                    //get the cell directl above
+                    neighbors.push(this.cells[i][j-1].alive);
+                }
+                if (j < this.height - 1) {
+                    //get the cell directl below 
+                    neighbors.push(this.cells[i][j+1].alive);
+                }
+
+                return neighbors; 
             }
 
             play_game() {
                 //update each cell's status 
-                this.cells.forEach((cell) => this.update(cell));
 
-                //render board again
-                this.cells.forEach((cell) => cell.draw());
+                this.cells.forEach(row => {
+                    row.forEach(cell => {
+                        this.update(cell);
+                    });
+                });
 
-                //repeat 
+                this.cells.forEach(row => {
+                    row.forEach(cell => {
+                        cell.draw();
+                    });
+                });
+
+                setTimeout( () => {
+                  window.requestAnimationFrame(() => this.play_game());
+                 }, 100)
             }
 
         }

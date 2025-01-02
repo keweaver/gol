@@ -14,24 +14,21 @@
                 this.i = i;
                 this.j = j; 
                 this.alive = alive;
+                this.alive_next = alive;
                 this.ctx = ctx;
                 this.cell_width = 10;
             }
 
             draw() {
-                if (this.alive) {
-                    this.ctx.fillStyle = 'black';
-
+                if (this.alive_next) {
+                    this.ctx.fillStyle = 'white';
                     this.ctx.fillRect(this.i * 10, this.j  * 10, this.cell_width, this.cell_width);
                 }
                 else {
-                    this.ctx.fillStyle = 'white';
+                    this.ctx.fillStyle = 'black';
                     this.ctx.fillRect(this.i * 10, this.j  * 10, this.cell_width, this.cell_width);
-
                 }
             }
-
-            
         }
     
         class Board {
@@ -69,39 +66,39 @@
                 let neighbors = this.retrieve_neighbors(cell.i, cell.j);
 
                 let live = neighbors.filter(Boolean).length;
-                
+
                 if (cell.alive) {
+
                     //fewer than two live neighbours dies: 
                     if (live < 2) {
-                        cell.alive = false; 
+                        cell.alive_next = false; 
                     }
                     //two or three live neighbors lives: 
                     else if ((live == 2) || (live == 3)) {
-                        cell.alive = true; 
+                        cell.alive_next = true; 
                     }
                     //more than three live neighbors dies:
                     else {
-                        cell.alive = false; 
+                        cell.alive_next = false; 
                     }
                 }
                 else {
                     //cell is currentl dead
                     if (live == 3) {
-                        cell.alive = true; 
+                        cell.alive_next = true; 
                     }
                 }
+
             }
 
             retrieve_neighbors(i, j) {
-                document.getElementById("text").innerHTML =  i + " " + j + " " + this.height;
-
-
                 let neighbors = [];
+                document.getElementById("text").innerHTML =  this.width + " " + this.height + " " + i + " " + j;
 
                 //if there are cells to the left..
                 if (i > 0) {
                     //get the cell to the left
-                    neighbors.push(this.cells[i - 1][j]);
+                    neighbors.push(this.cells[i - 1][j].alive);
                     if (j > 0) {
                         //get the cell to the upper left 
                         neighbors.push(this.cells[i-1][j-1].alive);
@@ -131,6 +128,7 @@
                     neighbors.push(this.cells[i][j+1].alive);
                 }
 
+
                 return neighbors; 
             }
 
@@ -146,6 +144,12 @@
                 this.cells.forEach(row => {
                     row.forEach(cell => {
                         cell.draw();
+                    });
+                });
+
+                this.cells.forEach(row => {
+                    row.forEach(cell => {
+                        cell.alive = cell.alive_next;
                     });
                 });
 

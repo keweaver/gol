@@ -1,51 +1,66 @@
 <!DOCTYPE html>
 <html lang="en">
     <head>
+        <link rel="stylesheet" href="style.css">
         <meta charset="UTF-8">
     </head>
     <body>
-        <canvas id="canvas" width="600" height="400" style="border:1px solid black;">display</canvas>
+        <div class="container">
+            <canvas id="canvas" width="1200" height="800" style="border:1px solid black;">display</canvas>
+        </div>
         <p id="text">test</p>
+
+        
     </body>
     <script>
+        const CELL_WIDTH = 2; 
     
         class Cell {
+            /*
+            Instance of one cell 
+            */
             constructor(i, j, alive, ctx) {
-                this.i = i;
-                this.j = j; 
-                this.alive = alive;
-                this.alive_next = alive;
-                this.ctx = ctx;
-                this.cell_width = 10;
+                this.i = i; //x coordinate
+                this.j = j; //y coordinate
+                this.alive = alive; //past status, t/f
+                this.alive_next = alive; //future status, t/f
+                this.ctx = ctx; //context to draw on 
+                this.cell_width = CELL_WIDTH; //width for pixels
             }
 
             draw() {
-                if (this.alive_next) {
+                if (this.alive_next) { //if alive in current frame, render color
                     this.ctx.fillStyle = 'white';
-                    this.ctx.fillRect(this.i * 10, this.j  * 10, this.cell_width, this.cell_width);
+                    this.ctx.fillRect(this.i * CELL_WIDTH, this.j  * CELL_WIDTH, this.cell_width, this.cell_width);
                 }
-                else {
+                else { //if dead, render other color 
                     this.ctx.fillStyle = 'black';
-                    this.ctx.fillRect(this.i * 10, this.j  * 10, this.cell_width, this.cell_width);
+                    this.ctx.fillRect(this.i * CELL_WIDTH, this.j  * CELL_WIDTH, this.cell_width, this.cell_width);
                 }
             }
         }
     
         class Board {
+            /*
+            Instance of game board, contains w/h and cells 
+            */
             constructor(id) {
-                this.canvas = document.getElementById(id);
-                this.cell_width = 10;
-                this.width = this.canvas.width / this.cell_width;
-                this.height = this.canvas.height / this.cell_width; 
+                this.canvas = document.getElementById(id); //canvas to draw on
+                this.cell_width = CELL_WIDTH; //width of cell 
+                this.width = this.canvas.width / this.cell_width; //num cells x direction
+                this.height = this.canvas.height / this.cell_width; //num cells y direction
 
-                this.ctx = canvas.getContext('2d');
-                this.cells = [];
+                this.ctx = canvas.getContext('2d'); //context to draw on 
+                this.cells = []; //all cells, 2d array 
 
-                this.init_board();
-                window.requestAnimationFrame(() => this.play_game());
+                this.init_board(); //generate and render initial board
+                window.requestAnimationFrame(() => this.play_game()); //continue playing 
             }
 
             init_board() {
+                /*
+                generate and draw cells into 2d array
+                */
                 for(let i = 0; i < this.width; i++) {
                     let cur_row = [];
                     for(let j = 0; j < this.height; j++) {
@@ -56,16 +71,16 @@
                     }
                     this.cells.push(cur_row);
                 }
-                //2D ARRAY IS WORKING :) 
-                //document.getElementById("text").innerHTML =  this.cells[0][0];
             }
 
             update(cell) {
-                //given a cell, use GOL rules to update status
+                /*
+                given a cell, count all live neighbors and apply
+                game rules accordingly. update the current status
+                alive_next
+                */
 
-                let neighbors = this.retrieve_neighbors(cell.i, cell.j);
-
-                let live = neighbors.filter(Boolean).length;
+                let live = this.retrieve_neighbors(cell.i, cell.j);
 
                 if (cell.alive) {
 
@@ -88,10 +103,13 @@
                         cell.alive_next = true; 
                     }
                 }
-
             }
 
             retrieve_neighbors(i, j) {
+                /*
+                ugly af method. I'm sorry 
+                gets all neighbors, returns num alive 
+                */
                 let neighbors = [];
                 document.getElementById("text").innerHTML =  this.width + " " + this.height + " " + i + " " + j;
 
@@ -128,31 +146,37 @@
                     neighbors.push(this.cells[i][j+1].alive);
                 }
 
-
-                return neighbors; 
+                return neighbors.filter(Boolean).length;; 
             }
 
             play_game() {
-                //update each cell's status 
+                /*
+                update each cell, render new alive statuses, and 
+                then reset past status to current before repeating 
+                */
 
+                //update each cell 
                 this.cells.forEach(row => {
                     row.forEach(cell => {
                         this.update(cell);
                     });
                 });
 
+                //draw each cell with updated status 
                 this.cells.forEach(row => {
                     row.forEach(cell => {
                         cell.draw();
                     });
                 });
 
+                //set past alive status to current alive_next 
                 this.cells.forEach(row => {
                     row.forEach(cell => {
                         cell.alive = cell.alive_next;
                     });
                 });
 
+                //wait and repeat 
                 setTimeout( () => {
                   window.requestAnimationFrame(() => this.play_game());
                  }, 100)

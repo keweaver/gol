@@ -6,22 +6,23 @@
     </head>
     <body>
         <div class="container">
-            <canvas id="canvas" width="1200" height="800" style="border:1px solid black;">display</canvas>
+            <canvas id="canvas" width="800" height="800" style="border:1px solid black;">display</canvas>
         </div>
         <p id="text">test</p>
 
         
     </body>
     <script>
-        const CELL_WIDTH = 2; 
+        const CELL_WIDTH = 10; 
     
         class Cell {
             /*
             Instance of one cell 
             */
-            constructor(i, j, alive, ctx) {
+            constructor(i, j, cw, alive, ctx) {
                 this.i = i; //x coordinate
                 this.j = j; //y coordinate
+                this.cw = cw; //cell
                 this.alive = alive; //past status, t/f
                 this.alive_next = alive; //future status, t/f
                 this.ctx = ctx; //context to draw on 
@@ -31,11 +32,11 @@
             draw() {
                 if (this.alive_next) { //if alive in current frame, render color
                     this.ctx.fillStyle = 'white';
-                    this.ctx.fillRect(this.i * CELL_WIDTH, this.j  * CELL_WIDTH, this.cell_width, this.cell_width);
+                    this.ctx.fillRect(this.i * this.cw, this.j  * this.cw, this.cw, this.cw);
                 }
                 else { //if dead, render other color 
                     this.ctx.fillStyle = 'black';
-                    this.ctx.fillRect(this.i * CELL_WIDTH, this.j  * CELL_WIDTH, this.cell_width, this.cell_width);
+                    this.ctx.fillRect(this.i * this.cw, this.j  * this.cw, this.cw, this.cw);
                 }
             }
         }
@@ -49,6 +50,13 @@
                 this.cell_width = CELL_WIDTH; //width of cell 
                 this.width = this.canvas.width / this.cell_width; //num cells x direction
                 this.height = this.canvas.height / this.cell_width; //num cells y direction
+                
+                //number of warps = rand (1 to width / cell_width / 2 ) 
+                this.num_cols = Math.floor(Math.random() * ((this.width / 2) - 1) + 1);
+                //document.getElementById("text").innerHTML =  this.width  + " " + this.num_cols;
+                this.warp = this.gen_warp(); 
+                this.warp = this.warp.map(w => w * this.cell_width);
+                //document.getElementById("text").innerHTML = this.warp + " " + this.num_cols;
 
                 this.ctx = canvas.getContext('2d'); //context to draw on 
                 this.cells = []; //all cells, 2d array 
@@ -65,13 +73,53 @@
                     let cur_row = [];
                     for(let j = 0; j < this.height; j++) {
                         let alive = Math.random();
-                        let cell = new Cell(i, j, alive < 0.5, this.ctx);
+                        let cell_width = this.warp[j];
+                        let cell = new Cell(i, j, cell_width, alive < 0.5, this.ctx);
                         cur_row.push(cell);
                         cell.draw(); 
                     }
                     this.cells.push(cur_row);
                 }
             }
+
+            gen_warp() {
+                //create array from 0 to width of canvas 
+                //grid is ONE HALF of the width of the board / 10 (cell width min)
+                //this is an array from like 0 to 39 (if width is = 800)
+                let w = this.width / 2; 
+                let grid = Array.from(
+                    { length: (w - 1) / 1 + 1 },
+                    (value, index) => 0 + index * 1
+                    );
+
+                //now we delete random numbers the length of grid is = num_cols
+                for(let i=0; i < w - this.num_cols; i++) {
+                    //generate random number, remove from grid
+                    let r = Math.floor(Math.random() * grid.length);
+                    //document.getElementById("text").innerHTML =  grid + " " + r;
+                    grid.splice(r, 1);
+                }
+                //if front and back do not exist, add 
+                if (grid.indexOf(0) === -1) {
+                    grid.unshift(0);
+                }
+                if(grid.indexOf(39) === -1) {
+                    grid.push(39);
+                }
+
+
+                let diff = []
+                for(let i=0; i < grid.length - 1; i++) {
+                    diff.push(grid[i+1] - grid[i]);
+                }
+                document.getElementById("text").innerHTML = grid + " " + diff;
+
+                //all cell spacings for the WHOLE grid, by coord
+                let final = diff.concat(diff.slice().reverse());  
+
+                return final; 
+            }
+
 
             update(cell) {
                 /*
@@ -111,7 +159,7 @@
                 gets all neighbors, returns num alive 
                 */
                 let neighbors = [];
-                document.getElementById("text").innerHTML =  this.width + " " + this.height + " " + i + " " + j;
+                //document.getElementById("text").innerHTML =  this.width + " " + this.height + " " + i + " " + j;
 
                 //if there are cells to the left..
                 if (i > 0) {
@@ -185,5 +233,20 @@
         }
 
         let game = new Board('canvas');
+
+
+        /*
+        for warp:
+        randoml generate number of sections, from 1 to width/2
+        then for this, take an array and select sections
+        mirror on other side 
+
+        repeat for height 
+
+        then you will have number of rows and columns. do ever
+        ything normally, and then the width height of each cell is 
+        the only thing that changes. you'll have to set this up during 
+        initialization of the shell 
+        */
     </script>
 </html>

@@ -22,7 +22,7 @@
             constructor(i, j, cw, alive, ctx) {
                 this.i = i; //x coordinate
                 this.j = j; //y coordinate
-                this.cw = cw; //cell
+                this.cw = cw; //cell width
                 this.alive = alive; //past status, t/f
                 this.alive_next = alive; //future status, t/f
                 this.ctx = ctx; //context to draw on 
@@ -32,11 +32,11 @@
             draw() {
                 if (this.alive_next) { //if alive in current frame, render color
                     this.ctx.fillStyle = 'white';
-                    this.ctx.fillRect(this.i * this.cw, this.j  * this.cw, this.cw, this.cw);
+                    this.ctx.fillRect(this.i, this.j, this.cw, this.cw);
                 }
                 else { //if dead, render other color 
                     this.ctx.fillStyle = 'black';
-                    this.ctx.fillRect(this.i * this.cw, this.j  * this.cw, this.cw, this.cw);
+                    this.ctx.fillRect(this.i, this.j, this.cw, this.cw);
                 }
             }
         }
@@ -53,28 +53,37 @@
                 
                 //number of warps = rand (1 to width / cell_width / 2 ) 
                 this.num_cols = Math.floor(Math.random() * ((this.width / 2) - 1) + 1);
-                //document.getElementById("text").innerHTML =  this.width  + " " + this.num_cols;
+                //this.warp is the width of each cell to be rendered 
                 this.warp = this.gen_warp(); 
-                this.warp = this.warp.map(w => w * this.cell_width);
-                //document.getElementById("text").innerHTML = this.warp + " " + this.num_cols;
+            
+                //this.grid is the original column numbers selected 
+                //document.getElementById("text").innerHTML = this.grid + "XXXXXXXXXXXX " + this.warp;
 
                 this.ctx = canvas.getContext('2d'); //context to draw on 
                 this.cells = []; //all cells, 2d array 
 
                 this.init_board(); //generate and render initial board
+
                 window.requestAnimationFrame(() => this.play_game()); //continue playing 
             }
 
             init_board() {
                 /*
                 generate and draw cells into 2d array
+                NEED TO EDIT THIS TO INCLUDE WARP
+                we will no longer have a 1-1 width height grid of cells. instead
+                we need to generate only the amount of cells that 
+                is defined by the this.grid var 
+                --
+                so we want there to be this.warp number of cells up and down 
                 */
-                for(let i = 0; i < this.width; i++) {
+                for(let i = 0; i < this.warp_coords.length; i++) {
                     let cur_row = [];
-                    for(let j = 0; j < this.height; j++) {
+                    for(let j = 0; j < this.warp_coords.length; j++) {
                         let alive = Math.random();
                         let cell_width = this.warp[j];
-                        let cell = new Cell(i, j, cell_width, alive < 0.5, this.ctx);
+
+                        let cell = new Cell(this.warp_coords[i], this.warp_coords[j], cell_width, alive < 0.5, this.ctx);
                         cur_row.push(cell);
                         cell.draw(); 
                     }
@@ -99,6 +108,7 @@
                     //document.getElementById("text").innerHTML =  grid + " " + r;
                     grid.splice(r, 1);
                 }
+
                 //if front and back do not exist, add 
                 if (grid.indexOf(0) === -1) {
                     grid.unshift(0);
@@ -106,18 +116,32 @@
                 if(grid.indexOf(39) === -1) {
                     grid.push(39);
                 }
+                this.grid = grid; 
 
 
                 let diff = []
                 for(let i=0; i < grid.length - 1; i++) {
                     diff.push(grid[i+1] - grid[i]);
                 }
-                document.getElementById("text").innerHTML = grid + " " + diff;
 
                 //all cell spacings for the WHOLE grid, by coord
-                let final = diff.concat(diff.slice().reverse());  
+                //let final = diff.concat(diff.slice().reverse());  
+                diff = diff.map(w => w * this.cell_width);
+                //last in final multiplied by 2 
+                diff[diff.length - 1] *= 2; 
+                this.warp_coords = []; 
+                let prev = 0;
+                //sum all in diff
+                diff.forEach((i) => {
+                    prev = prev + i; 
+                    this.warp_coords.push(prev);
+                });
+                this.warp_coords.unshift(0);
+                this.warp_coords.pop();
 
-                return final; 
+                document.getElementById("text").innerHTML = this.warp_coords + "X " + diff;
+
+                return diff; 
             }
 
 

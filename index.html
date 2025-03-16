@@ -66,27 +66,46 @@
                 generate and draw cells into 2d array
                 must be one quarter of the board (!) 
                 */
-
                 //for warp_coords (columns)
+                let top_rows = []; 
+                let bot_rows = []; 
                 for(let j = 0; j < this.warp_coords.length; j++) {
-                    let cur_row = [];
+                    let tr_row = [];
+                    let tl_row = [];
+                    let br_row = [];
+                    let bl_row = [];
+
                     let ch = this.warp_size[j];
                     //for warp_coords (rows)
                     for(let i = 0; i < this.warp_coords.length; i++) {
                         let cw = this.warp_size[i];
                         //randomly assign cell as alive
                         let alive = Math.random();
-                        //get cell width from warp_size
-                        //get cell height from warp_size
-                        //get cell i from warp_coords
-                        //get cell j from warp_coords
+                        let tr_cell = new Cell(this.warp_coords[i], this.warp_coords[j], alive < 0.5, cw, ch, this.ctx);
+                        let tl_cell = new Cell(this.width - this.warp_coords[i] - cw, this.warp_coords[j], alive < 0.5, cw, ch, this.ctx);
+                        let br_cell = new Cell(this.warp_coords[i], this.height - this.warp_coords[j] - ch, alive < 0.5, cw, ch, this.ctx);
+                        let bl_cell = new Cell(this.width - this.warp_coords[i] - cw, this.height - this.warp_coords[j] - ch, alive < 0.5, cw, ch, this.ctx);
 
-                        let cell = new Cell(this.warp_coords[i], this.warp_coords[j], alive < 0.5, cw, ch, this.ctx);
-                        cur_row.push(cell);
-                        cell.draw(); 
+                        tr_row.push(tr_cell);                       
+                        tl_row.unshift(tl_cell);   
+                        br_row.push(br_cell);                       
+                        bl_row.unshift(bl_cell);   
+
+                        tr_cell.draw(); 
+                        tl_cell.draw(); 
+                        br_cell.draw(); 
+                        bl_cell.draw(); 
+
                     }
-                    this.cells.push(cur_row);
+                    //combine top and bottom rows: 
+                    top_rows.push(tr_row.concat(tl_row));
+                    bot_rows.unshift(br_row.concat(bl_row));
+                    document.getElementById("text").innerHTML =  this.warp_coords.length + "C" + bot_rows[0] + "X " + bot_rows.length; 
+
+                    //this.cells.push(tr_row.push.apply(tr_row, tl_row));
                 }
+                this.cells.push(top_rows.concat(bot_rows));
+                this.cells = this.cells[0];
             }
 
             gen_warp() {
@@ -125,7 +144,6 @@
                 for(let i=0; i < grid.length - 1; i++) {
                     diff.push(grid[i+1] - grid[i]);
                 }
-                document.getElementById("text").innerHTML =  grid + " X " +diff + "Y"; 
 
                 return diff; 
 
@@ -137,11 +155,10 @@
                 game rules accordingly. update the current status
                 alive_next
                 */
-
                 let live = this.retrieve_neighbors(cell.i, cell.j);
+                document.getElementById("text").innerHTML = this.width + "Y" + this.warp_coords.length + " x "+ cell.i + "updated" + cell.j;                       
 
                 if (cell.alive) {
-
                     //fewer than two live neighbours dies: 
                     if (live < 2) {
                         cell.alive_next = false; 
@@ -184,6 +201,7 @@
                         neighbors.push(this.cells[i-1][j+1].alive)
                     }
                 }
+
                 if (i < this.width - 1) {
                     //get the cell to the right...
                     neighbors.push(this.cells[i + 1][j].alive);
@@ -195,6 +213,8 @@
                         neighbors.push(this.cells[i + 1][j + 1].alive);
                     }
                 }
+                document.getElementById("text").innerHTML = "CRASH";                       
+
                 if (j > 0) {
                     //get the cell directl above
                     neighbors.push(this.cells[i][j-1].alive);
@@ -212,8 +232,8 @@
                 update each cell, render new alive statuses, and 
                 then reset past status to current before repeating 
                 */
-
                 //update each cell 
+
                 this.cells.forEach(row => {
                     row.forEach(cell => {
                         this.update(cell);
@@ -222,8 +242,9 @@
 
                 //draw each cell with updated status 
                 this.cells.forEach(row => {
+                    //document.getElementById("text").innerHTML =  "s lol"; 
                     row.forEach(cell => {
-                        cell.draw();
+                        cell.draw(); 
                     });
                 });
 
